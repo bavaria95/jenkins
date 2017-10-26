@@ -33,4 +33,6 @@ spec:
         name: acceptance
         tty: true
         stdin: true
+      imagePullSecrets:
+      - name: gitlabdocker
       restartPolicy: Never
