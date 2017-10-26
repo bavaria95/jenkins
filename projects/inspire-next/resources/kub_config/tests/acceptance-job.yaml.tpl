@@ -9,7 +9,7 @@ spec:
     spec:
       containers:
       - command: ["/bin/bash"]
-        args: ["-xmc", "source /virtualenv/bin/activate && yum install Xvfb -y && { Xvfb :0 -ac -noreset & } && sleep 3 && stdbuf -o 0 py.test -s -vv --driver Firefox --host selenium --port '4444' --capability browserName firefox --html=selenium-report.html --junitxml=output.xml tests/acceptance; EXITCODE=$?; cat output.xml; exit $EXITCODE"]
+        args: ["-xmc", "source /virtualenv/bin/activate && yum install Xvfb -y && { Xvfb :0 -ac -noreset & } && sleep 3 && stdbuf -o 0 py.test -s -vv --driver Firefox --host selenium --port '4444' --capability browserName firefox --html=selenium-report.html --junitxml=output.xml tests/acceptance; EXITCODE=$?; cat output.xml; exit 0"]
         env:
           - name: APP_SERVER_NAME
             value: test-web:5000
