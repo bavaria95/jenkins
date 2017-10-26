@@ -35,4 +35,4 @@ spec:
         stdin: true
       imagePullSecrets:
       - name: gitlabdocker
-      restartPolicy: Never
+      restartPolicy: OnFailure
