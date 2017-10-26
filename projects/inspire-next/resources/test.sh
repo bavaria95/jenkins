@@ -42,9 +42,10 @@ libs.wait_for_number_of_pods 7
 
 libs.wait_for_number_of_pods 8
 
-libs.wait_for_pod_to_exit
 
 PODNAME=$("${KUBECTL[@]}" get pods -a | grep 'unit' | awk '{print $1}')
+libs.wait_for_pod_to_exit
+
 OUTPUT=$("${KUBECTL[@]}" logs "$PODNAME")
 EXITCODE=$(libs.pod_exit_code)
 

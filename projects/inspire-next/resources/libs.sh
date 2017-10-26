@@ -44,17 +44,18 @@ libs.wait_for_number_of_pods() {
 
 
 libs.pod_exit_code() {
-    local terminated_jsonpath='{.items[*].status.containerStatuses[0].state.terminated.exitCode}'
+    local terminated_jsonpath='{.status.containerStatuses[0].state.terminated.exitCode}'
     "${KUBECTL[@]}" \
         get \
+            pod \
+            $1 \
             --show-all \
             --output "jsonpath=$terminated_jsonpath" \
-            pods
 }
 
 
 libs.wait_for_pod_to_exit() {
-    while ! libs.pod_exit_code | grep -q "^..*$"; do
+    while ! libs.pod_exit_code $1 | grep -q "^..*$"; do
         sleep 2
     done
 }

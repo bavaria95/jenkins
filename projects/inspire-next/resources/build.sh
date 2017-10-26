@@ -18,9 +18,12 @@ KUBECTL=(
 
 libs.wait_for_number_of_pods 1
 
-libs.wait_for_pod_to_exit
+PODNAME=$("${KUBECTL[@]}" get pods -a | grep 'unit' | awk '{print $1}')
 
-"${KUBECTL[@]}" logs docker-builder
+libs.wait_for_pod_to_exit $PODNAME
+
+OUTPUT=$("${KUBECTL[@]}" logs "$PODNAME")
+echo $OUTPUT
 
 EXITCODE=$(libs.pod_exit_code)
 
