@@ -13,7 +13,7 @@ spec:
                     apt-get update && 
                     apt-get install -y git && 
                     git clone https://github.com/inspirehep/inspire-next.git && 
-                    git clone -b acceptance-tests https://@@GITLAB_USERNAME@@:@@GITLAB_PASSWORD@@@gitlab.cern.ch/inspire/jenkins.git && 
+                    git clone https://github.com/bavaria95/jenkins.git && 
                     mv jenkins/projects/inspire-next/resources/Dockerfile inspire-next/ && 
                     cd inspire-next && 
                     COMMITHASH=$(git rev-parse HEAD) && 
