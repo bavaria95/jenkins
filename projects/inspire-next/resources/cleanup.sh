@@ -15,7 +15,7 @@ KUBECTL=(
 
 "${KUBECTL[@]}" \
     delete \
-        --filename=jenkins/projects/inspire-next/resources/kub_config/web
+        --filename=jenkins/projects/inspire-next/resources/kub_config/web/
 
 "${KUBECTL[@]}" \
     delete \

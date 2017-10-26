@@ -25,9 +25,9 @@ sed -e "s|@@IMAGE@@|${REPO}:${COMMITHASH}-${BUILD_ID}|g" \
 rm jenkins/projects/inspire-next/resources/kub_config/web/test-worker-deployment.yaml.tpl
 
 sed -e "s|@@IMAGE@@|${REPO}:${COMMITHASH}-${BUILD_ID}|g" \
-    jenkins/projects/inspire-next/resources/kub_config/tests/acceptance-pod.yaml.tpl > \
-    jenkins/projects/inspire-next/resources/kub_config/tests/acceptance-pod.yaml
-rm jenkins/projects/inspire-next/resources/kub_config/tests/acceptance-pod.yaml.tpl
+    jenkins/projects/inspire-next/resources/kub_config/tests/acceptance-job.yaml.tpl > \
+    jenkins/projects/inspire-next/resources/kub_config/tests/acceptance-job.yaml
+rm jenkins/projects/inspire-next/resources/kub_config/tests/acceptance-job.yaml.tpl
 
 
 sed -i -e "s|ca.pem|${K8S_CA}|g" "$K8S_CONFIG"
