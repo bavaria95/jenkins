@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  name: test-redis
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        service: test-redis
+    spec:
+      containers:
+      - image: redis
+        name: test-redis
+        resources: {}
+      restartPolicy: Always
+status: {}

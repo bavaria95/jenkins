@@ -1,0 +1,27 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  name: test-database
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        service: test-database
+    spec:
+      containers:
+      - env:
+        - name: POSTGRES_PASSWORD
+          value: dbpass123
+        - name: POSTGRES_USER
+          value: inspirehep
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        image: postgres
+        name: test-database
+        resources: {}
+      restartPolicy: Always
+status: {}

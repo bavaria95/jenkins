@@ -1,0 +1,27 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  name: test-indexer
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        service: test-indexer
+    spec:
+      containers:
+      - args:
+        - elasticsearch
+        - -Dcluster.name=inspire
+        - -Ddiscovery.zen.ping.multicast.enabled=false
+        env:
+        - name: ES_HEAP_SIZE
+          value: 2g
+        image: inspirehep/elasticsearch
+        name: test-indexer
+        resources: {}
+      restartPolicy: Always
+status: {}

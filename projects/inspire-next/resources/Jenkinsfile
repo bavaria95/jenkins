@@ -1,0 +1,95 @@
+def setBuildStatus(String message, String state, String context, String sha) {
+    step([
+        $class: "GitHubCommitStatusSetter",
+        reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/inspirehep/inspire-next"],
+        contextSource: [$class: "ManuallyEnteredCommitContextSource", context: context],
+        errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
+        commitShaSource: [$class: "ManuallyEnteredShaSource", sha: sha ],
+        statusBackrefSource: [$class: "ManuallyEnteredBackrefSource", backref: "${BUILD_URL}flowGraphTable/"],
+        statusResultSource: [$class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]] ]
+    ]);
+}
+
+def getCommitSha() {
+      sh "git rev-parse HEAD > .git/current-commit"
+      return readFile(".git/current-commit").trim()
+  }
+
+
+node ('master') {
+  git poll: true, url: 'https://github.com/inspirehep/inspire-next'
+
+  def COMMIT_AUTHOR_EMAIL = sh returnStdout: true, script: "git log --format='%ae' HEAD^!"
+  COMMIT_AUTHOR_EMAIL = COMMIT_AUTHOR_EMAIL.trim()
+
+  env.COMMITHASH = getCommitSha()
+
+  withCredentials([file(credentialsId: 'K8S_CA', variable: 'K8S_CA'),
+                   file(credentialsId: 'K8S_CERT', variable: 'K8S_CERT'),
+                   file(credentialsId: 'K8S_CONFIG', variable: 'K8S_CONFIG'),
+                   file(credentialsId: 'K8S_KEY', variable: 'K8S_KEY'),
+                   string(credentialsId: 'GITLAB_PASSWORD', variable: 'GITLAB_PASSWORD'),
+                   string(credentialsId: 'GITLAB_USERNAME', variable: 'GITLAB_USERNAME')
+                   ]) {
+    try {
+      stage('Init') {
+        sh '''
+          rm -rf {jenkins}
+          git clone -b acceptance-tests https://$GITLAB_USERNAME:$GITLAB_PASSWORD@gitlab.cern.ch/inspire/jenkins.git
+          ./jenkins/projects/inspire-next/resources/init.sh
+        '''
+      }
+
+      stage('Build') {
+        def statusCodeBuild = sh returnStatus: true, script: '''
+          ./jenkins/projects/inspire-next/resources/build.sh
+        '''
+
+        if (statusCodeBuild != 0) {
+            currentBuild.result = 'FAILURE'
+            setBuildStatus("Image build failed", "ERROR", "cern/jenkins/acceptance", env.COMMITHASH)
+            mail body: "Build of the docker image failed", subject: "[Jenkins] Failed build #${BUILD_ID}", to: COMMIT_AUTHOR_EMAIL
+            error "Build of the docker image failed"
+            sleep 2
+        }
+      }
+
+      stage('Test') {
+        ansiColor('xterm') {
+          def statusCodeTests = sh returnStatus: true, script: '''
+            ./jenkins/projects/inspire-next/resources/test.sh
+            '''
+
+          if (statusCodeTests != 0) {
+            currentBuild.result = 'FAILURE'
+            setBuildStatus("Tests failed", "FAILURE", "cern/jenkins/acceptance", env.COMMITHASH)
+            mail body: "Acceptance tests failed", subject: "[Jenkins] Failed build #${BUILD_ID}", to: COMMIT_AUTHOR_EMAIL
+            error "Acceptance tests failed"
+            sleep 2
+          }
+          else {
+              setBuildStatus("Tests passed", "SUCCESS", "cern/jenkins/acceptance", env.COMMITHASH)
+          }
+        }
+
+        junit "result.xml"
+      }
+    } finally {
+      stage('Cleanup') {
+        sh '''
+          ./jenkins/projects/inspire-next/resources/cleanup.sh
+        '''
+      }
+    }
+  }
+
+  stage('Confirm') {
+    timeout(time: 1, unit: 'DAYS') {
+            input(message: 'Deploy to QA?')
+    }
+  }
+
+  stage('Post-confirmation stage') {
+    sh 'echo "Here deploy should happen..."'
+  }
+}
