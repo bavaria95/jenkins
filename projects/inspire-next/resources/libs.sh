@@ -7,9 +7,9 @@ KUBECTL=(
 )
 
 
-libs.get_started_pods() {
+libs.get_running_pods() {
     local started_jsonpath='{.items[*].status.containerStatuses[*].state.running.startedAt}'
-    local timestamp_regex='\d{4}-\d{2}-\d{2}T\d{2}'
+    local timestamp_regex='\d{4}-\d{2}-\d{2}T'
 
     "${KUBECTL[@]}" \
         get \
@@ -24,7 +24,7 @@ libs.get_started_pods() {
 
 
 libs.get_num_started_pods() {
-    libs.get_started_pods \
+    libs.get_running_pods \
     | wc --lines
 }
 

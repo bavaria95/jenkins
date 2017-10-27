@@ -40,7 +40,7 @@ libs.wait_for_number_of_pods 7
         --filename="jenkins/projects/inspire-next/resources/kub_config/tests" \
         --validate=false
 
-libs.wait_for_number_of_pods 9
+libs.wait_for_number_of_pods 8
 
 
 PODNAME=$("${KUBECTL[@]}" get pods -a | grep 'unit' | awk '{print $1}')
