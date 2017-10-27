@@ -11,10 +11,6 @@ spec:
       - command: ["/bin/bash"]
         args: ["-xmc", "source /virtualenv/bin/activate && py.test --junitxml=output.xml inspirehep tests/unit && make -C docs html; EXITCODE=$?; cat output.xml; exit 0"]
         env:
-          - name: APP_SERVER_NAME
-            value: test-web:5000
-          - name: SERVER_NAME
-            value: test-web:5000
           - name: APP_SQLALCHEMY_DATABASE_URI
             value: postgresql+psycopg2://inspirehep:dbpass123@test-database:5432/inspirehep
           - name: APP_BROKER_URL

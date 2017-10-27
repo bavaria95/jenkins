@@ -20,7 +20,9 @@ spec:
                     echo $COMMITHASH && 
                     ../docker/docker build -t gitlab-registry.cern.ch/inspire/jenkins/@@IMAGE@@ . && 
                     ../docker/docker login gitlab-registry.cern.ch -u @@GITLAB_USERNAME@@ -p @@GITLAB_PASSWORD@@ && 
-                    ../docker/docker push gitlab-registry.cern.ch/inspire/jenkins/@@IMAGE@@"]
+                    ../docker/docker push gitlab-registry.cern.ch/inspire/jenkins/@@IMAGE@@ &&
+                    exit 0"
+                ]
         image: tutum/curl
         name: docker-builder
         tty: true
