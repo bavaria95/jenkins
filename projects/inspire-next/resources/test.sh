@@ -40,14 +40,18 @@ libs.wait_for_number_of_pods 7
         --filename="jenkins/projects/inspire-next/resources/kub_config/tests" \
         --validate=false
 
-libs.wait_for_number_of_pods 8
+libs.wait_for_number_of_pods 9
 
 
 PODNAME=$("${KUBECTL[@]}" get pods -a | grep 'unit' | awk '{print $1}')
-libs.wait_for_pod_to_exit
-
+libs.wait_for_pod_to_exit $PODNAME
 OUTPUT=$("${KUBECTL[@]}" logs "$PODNAME")
-EXITCODE=$(libs.pod_exit_code)
+echo $OUTPUT | grep -Po '(<\?xml.*</testsuite>)' > result_unit.xml
 
-echo $OUTPUT | grep -Po '(<\?xml.*</testsuite>)' > result.xml
-exit $EXITCODE
+
+PODNAME=$("${KUBECTL[@]}" get pods -a | grep 'acceptance' | awk '{print $1}')
+libs.wait_for_pod_to_exit $PODNAME
+OUTPUT=$("${KUBECTL[@]}" logs "$PODNAME")
+echo $OUTPUT | grep -Po '(<\?xml.*</testsuite>)' > result_acceptance.xml
+
+# EXITCODE=$(libs.pod_exit_code)
