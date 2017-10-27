@@ -50,7 +50,7 @@ libs.pod_exit_code() {
             pod \
             $1 \
             --show-all \
-            --output "jsonpath=$terminated_jsonpath" \
+            --output "jsonpath=$terminated_jsonpath"
 }
 
 
