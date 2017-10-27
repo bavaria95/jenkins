@@ -47,11 +47,5 @@ PODNAME=$("${KUBECTL[@]}" get pods -a | grep 'unit' | awk '{print $1}')
 libs.wait_for_pod_to_exit $PODNAME
 OUTPUT=$("${KUBECTL[@]}" logs "$PODNAME")
 echo $OUTPUT | grep -Po '(<\?xml.*</testsuite>)' > result_unit.xml
-
-
-PODNAME=$("${KUBECTL[@]}" get pods -a | grep 'acceptance' | awk '{print $1}')
-libs.wait_for_pod_to_exit $PODNAME
-OUTPUT=$("${KUBECTL[@]}" logs "$PODNAME")
-echo $OUTPUT | grep -Po '(<\?xml.*</testsuite>)' > result_acceptance.xml
-
-# EXITCODE=$(libs.pod_exit_code)
+FAILURES_UNIT=$(echo $OUTPUT | grep -Po '.*\K(?<=failures=")\d+(?=" )')
+echo $FAILURES_UNIT
