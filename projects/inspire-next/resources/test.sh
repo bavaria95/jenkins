@@ -43,10 +43,10 @@ libs.wait_for_number_of_pods 7
 libs.wait_for_number_of_pods 8
 
 
-PODNAME=$("${KUBECTL[@]}" get pods -a | grep 'acceptance' | awk '{print $1}')
+PODNAME=$("${KUBECTL[@]}" get pods -a | grep 'integration' | awk '{print $1}')
 libs.wait_for_pod_to_exit $PODNAME
 OUTPUT=$("${KUBECTL[@]}" logs "$PODNAME")
-echo $OUTPUT | grep -Po '(<\?xml.*</testsuite>)' > result_acceptance.xml
+echo $OUTPUT | grep -Po '(<\?xml.*</testsuite>)' > result_integration.xml
 # number of tests failues
-FAILURES_ACCEPTANCE=$(echo $OUTPUT | grep -Po '.*\K(?<=failures=")\d+(?=" )')
-exit $FAILURES_ACCEPTANCE
+FAILURES_INTEGRATION=$(echo $OUTPUT | grep -Po '.*\K(?<=failures=")\d+(?=" )')
+exit $FAILURES_INTEGRATION
