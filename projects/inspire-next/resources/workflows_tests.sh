@@ -9,7 +9,7 @@ KUBECTL=(
 )
 
 services=( test-database test-indexer test-rabbitmq test-redis )
-for service in "${services[@]}" do
+for service in "${services[@]}"; do
     "${KUBECTL[@]}" \
         apply \
             --filename="jenkins/projects/inspire-next/resources/kub_config/deps/${service}-*" \
@@ -19,7 +19,7 @@ done
 libs.wait_for_number_of_pods 4
 
 services=( test-worker )
-for service in "${services[@]}" do
+for service in "${services[@]}"; do
     "${KUBECTL[@]}" \
         apply \
             --filename="jenkins/projects/inspire-next/resources/kub_config/web/${service}-*" \

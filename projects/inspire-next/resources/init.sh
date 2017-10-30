@@ -52,7 +52,7 @@ sed -i -e "s|key.pem|${K8S_KEY}|g" "$K8S_CONFIG"
 envs=( builder acceptance integration unit workflows )
 
 
-for e in "${envs[@]}" do
+for e in "${envs[@]}"; do
 
     /var/lib/jenkins/kubectl \
         --kubeconfig="$K8S_CONFIG" \
