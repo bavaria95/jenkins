@@ -1,22 +1,16 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: acceptance
+  name: workflows
 spec:
   template:
     metadata:
-      name: acceptance
+      name: workflows
     spec:
       containers:
       - command: ["/bin/bash"]
-        args: ["-xmc", "source /virtualenv/bin/activate && yum install Xvfb -y && { Xvfb :0 -ac -noreset & } && sleep 3 && stdbuf -o 0 py.test -s -vv --driver Firefox --host selenium --port '4444' --capability browserName firefox --html=selenium-report.html --junitxml=output.xml tests/acceptance; EXITCODE=$?; cat output.xml; exit 0"]
+        args: ["-xmc", "source /virtualenv/bin/activate && py.test --junitxml=output.xml tests/integration/workflows; EXITCODE=$?; cat output.xml; exit 0"]
         env:
-          - name: APP_SERVER_NAME
-            value: test-web:5000
-          - name: SERVER_NAME
-            value: test-web:5000
-          - name: DISPLAY
-            value: :0
           - name: APP_SQLALCHEMY_DATABASE_URI
             value: postgresql+psycopg2://inspirehep:dbpass123@test-database:5432/inspirehep
           - name: APP_BROKER_URL
@@ -30,9 +24,7 @@ spec:
           - name: APP_SEARCH_ELASTIC_HOSTS
             value: test-indexer
         image: @@IMAGE@@
-        name: acceptance
-        tty: true
-        stdin: true
+        name: workflows
       imagePullSecrets:
       - name: gitlabdocker
       restartPolicy: OnFailure

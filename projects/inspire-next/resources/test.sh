@@ -24,7 +24,7 @@ KUBECTL=(
         --filename="jenkins/projects/inspire-next/resources/kub_config/deps" \
         --validate=false
 
-libs.wait_for_number_of_pods 5
+libs.wait_for_number_of_pods 4
 
 
 "${KUBECTL[@]}" \
@@ -32,7 +32,7 @@ libs.wait_for_number_of_pods 5
         --filename="jenkins/projects/inspire-next/resources/kub_config/web" \
         --validate=false
 
-libs.wait_for_number_of_pods 7
+libs.wait_for_number_of_pods 5
 
 
 "${KUBECTL[@]}" \
@@ -40,13 +40,13 @@ libs.wait_for_number_of_pods 7
         --filename="jenkins/projects/inspire-next/resources/kub_config/tests" \
         --validate=false
 
-libs.wait_for_number_of_pods 8
+libs.wait_for_number_of_pods 6
 
 
-PODNAME=$("${KUBECTL[@]}" get pods -a | grep 'acceptance' | awk '{print $1}')
+PODNAME=$("${KUBECTL[@]}" get pods -a | grep 'workflows' | awk '{print $1}')
 libs.wait_for_pod_to_exit $PODNAME
 OUTPUT=$("${KUBECTL[@]}" logs "$PODNAME")
-echo $OUTPUT | grep -Po '(<\?xml.*</testsuite>)' > result_acceptance.xml
+echo $OUTPUT | grep -Po '(<\?xml.*</testsuite>)' > result_workflows.xml
 # number of tests failues
-FAILURES_ACCEPTANCE=$(echo $OUTPUT | grep -Po '.*\K(?<=failures=")\d+(?=" )')
-exit $FAILURES_ACCEPTANCE
+FAILURES_WORKFLOWS=$(echo $OUTPUT | grep -Po '.*\K(?<=failures=")\d+(?=" )')
+exit $FAILURES_WORKFLOWS
