@@ -12,7 +12,12 @@ services=( test-database test-indexer test-rabbitmq test-redis )
 for service in "${services[@]}"; do
     "${KUBECTL[@]}" \
         apply \
-            --filename="jenkins/projects/inspire-next/resources/kub_config/deps/${service}-*" \
+            --filename="jenkins/projects/inspire-next/resources/kub_config/deps/${service}-deployment.yaml" \
+            --validate=false
+
+    "${KUBECTL[@]}" \
+        apply \
+            --filename="jenkins/projects/inspire-next/resources/kub_config/deps/${service}-service.yaml" \
             --validate=false
 done
 
@@ -22,7 +27,12 @@ services=( test-worker )
 for service in "${services[@]}"; do
     "${KUBECTL[@]}" \
         apply \
-            --filename="jenkins/projects/inspire-next/resources/kub_config/web/${service}-*" \
+            --filename="jenkins/projects/inspire-next/resources/kub_config/web/${service}-deployment.yaml" \
+            --validate=false
+
+    "${KUBECTL[@]}" \
+        apply \
+            --filename="jenkins/projects/inspire-next/resources/kub_config/web/${service}-service.yaml" \
             --validate=false
 done
 
