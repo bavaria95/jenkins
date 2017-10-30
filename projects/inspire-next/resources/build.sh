@@ -5,7 +5,7 @@ source jenkins/projects/inspire-next/resources/libs.sh
 KUBECTL=(
     /var/lib/jenkins/kubectl
     --kubeconfig=$K8S_CONFIG
-    --namespace="commit-${COMMITHASH}-${BUILD_ID}"
+    --namespace="commit-${COMMITHASH}-${BUILD_ID}-builder"
 )
 
 
@@ -13,7 +13,6 @@ KUBECTL=(
     apply \
         --filename="jenkins/projects/inspire-next/resources/kub_config/builder.yaml" \
         --validate=false \
-        --namespace="commit-${COMMITHASH}-${BUILD_ID}"
 
 
 libs.wait_for_number_of_pods 1
