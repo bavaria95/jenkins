@@ -5,25 +5,34 @@ source jenkins/projects/inspire-next/resources/libs.sh
 KUBECTL=(
     /var/lib/jenkins/kubectl
     --kubeconfig=$K8S_CONFIG
-    --namespace="commit-${COMMITHASH}-${BUILD_ID}"
 )
 
 
-"${KUBECTL[@]}" \
-    delete \
-        --filename=jenkins/projects/inspire-next/resources/kub_config/tests/
+envs=( builder acceptance integration unit workflows )
 
-"${KUBECTL[@]}" \
-    delete \
-        --filename=jenkins/projects/inspire-next/resources/kub_config/web/
+for e in "${envs[@]}"; do
+    "${KUBECTL[@]}" \
+    --namespace="commit-${COMMITHASH}-${BUILD_ID}-${e}" \
+        delete \
+            --filename=jenkins/projects/inspire-next/resources/kub_config/tests
 
-"${KUBECTL[@]}" \
-    delete \
-        --filename=jenkins/projects/inspire-next/resources/kub_config/deps/
+    "${KUBECTL[@]}" \
+    --namespace="commit-${COMMITHASH}-${BUILD_ID}-${e}" \
+        delete \
+            --filename=jenkins/projects/inspire-next/resources/kub_config/web
 
-/var/lib/jenkins/kubectl \
-    --kubeconfig=$K8S_CONFIG \
-    delete namespace \
-        "commit-${COMMITHASH}-${BUILD_ID}"
+    "${KUBECTL[@]}" \
+    --namespace="commit-${COMMITHASH}-${BUILD_ID}-${e}" \
+        delete \
+            --filename=jenkins/projects/inspire-next/resources/kub_config/deps
+
+
+    "${KUBECTL[@]}" \
+        delete namespace \
+            "commit-${COMMITHASH}-${BUILD_ID}-${e}"
+done
+
 
 rm -rf {jenkins}
+
+exit 0
