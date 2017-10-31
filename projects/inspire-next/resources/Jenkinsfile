@@ -4,7 +4,7 @@ def setBuildStatus(String message, String state, String context, String sha) {
         reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/inspirehep/inspire-next"],
         contextSource: [$class: "ManuallyEnteredCommitContextSource", context: context],
         errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
-        commitShaSource: [$class: "ManuallyEnteredShaSource", sha: sha ],
+        commitShaSource: [$class: "ManuallyEnteredShaSource", sha: sha],
         statusBackrefSource: [$class: "ManuallyEnteredBackrefSource", backref: "${BUILD_URL}flowGraphTable/"],
         statusResultSource: [$class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]] ]
     ]);
@@ -34,7 +34,7 @@ node ('master') {
     try {
       stage('Init') {
         sh '''
-          rm -rf {jenkins}
+          rm -rf jenkins
           git clone -b acceptance-tests https://$GITLAB_USERNAME:$GITLAB_PASSWORD@gitlab.cern.ch/inspire/jenkins.git
           ./jenkins/projects/inspire-next/resources/init.sh
         '''
@@ -47,32 +47,99 @@ node ('master') {
 
         if (statusCodeBuild != 0) {
             currentBuild.result = 'FAILURE'
-            setBuildStatus("Image build failed", "ERROR", "cern/jenkins/acceptance", env.COMMITHASH)
-            mail body: "Build of the docker image failed", subject: "[Jenkins] Failed build #${BUILD_ID}", to: COMMIT_AUTHOR_EMAIL
+            setBuildStatus("Image build failed", "ERROR", "cern/jenkins/builder", env.COMMITHASH)
+            mail body: "Build #${BUILD_ID}\nCommit ${env.COMMITHASH}", subject: "[Jenkins] Failed building image", to: COMMIT_AUTHOR_EMAIL
             error "Build of the docker image failed"
             sleep 2
         }
+        else {
+          setBuildStatus("Successfully built image", "SUCCESS", "cern/jenkins/builder", env.COMMITHASH)
+        }
       }
 
-      stage('Test') {
-        ansiColor('xterm') {
-          def statusCodeTests = sh returnStatus: true, script: '''
-            ./jenkins/projects/inspire-next/resources/test.sh
-            '''
+      stage('Tests') {
+        def statusCodeAcceptance, statusCodeWorkflows, statusCodeIntegration, statusCodeUnit
 
-          if (statusCodeTests != 0) {
-            currentBuild.result = 'FAILURE'
-            setBuildStatus("Tests failed", "FAILURE", "cern/jenkins/acceptance", env.COMMITHASH)
-            mail body: "Acceptance tests failed", subject: "[Jenkins] Failed build #${BUILD_ID}", to: COMMIT_AUTHOR_EMAIL
-            error "Acceptance tests failed"
-            sleep 2
+         ansiColor('xterm') {
+          parallel (
+            acceptance: {
+              statusCodeAcceptance = sh returnStatus: true, script: '''
+                ./jenkins/projects/inspire-next/resources/acceptance_tests.sh
+                '''
+
+              if (statusCodeAcceptance != 0) {
+                currentBuild.result = 'FAILURE'
+                setBuildStatus("Acceptance tests failed", "FAILURE", "cern/jenkins/acceptance", env.COMMITHASH)
+                mail body: "Build #${BUILD_ID}\nCommit ${env.COMMITHASH}", subject: "[Jenkins] Failed acceptance tests", to: COMMIT_AUTHOR_EMAIL
+              }
+              else {
+                  setBuildStatus("Acceptance tests passed", "SUCCESS", "cern/jenkins/acceptance", env.COMMITHASH)
+              }
+
+              junit "result_acceptance.xml"
+            },
+
+            workflows: {
+              statusCodeWorkflows = sh returnStatus: true, script: '''
+                ./jenkins/projects/inspire-next/resources/workflows_tests.sh
+                '''
+
+              if (statusCodeWorkflows != 0) {
+                currentBuild.result = 'FAILURE'
+                setBuildStatus("Workflows tests failed", "FAILURE", "cern/jenkins/workflows", env.COMMITHASH)
+                mail body: "Build #${BUILD_ID}\nCommit ${env.COMMITHASH}", subject: "[Jenkins] Failed workflows tests", to: COMMIT_AUTHOR_EMAIL
+              }
+              else {
+                  setBuildStatus("Workflows tests passed", "SUCCESS", "cern/jenkins/workflows", env.COMMITHASH)
+              }
+
+              junit "result_workflows.xml"
+            },
+
+            integration: {
+              statusCodeIntegration = sh returnStatus: true, script: '''
+                ./jenkins/projects/inspire-next/resources/integration_tests.sh
+                '''
+
+              if (statusCodeIntegration != 0) {
+                currentBuild.result = 'FAILURE'
+                setBuildStatus("Integration tests failed", "FAILURE", "cern/jenkins/integration", env.COMMITHASH)
+                mail body: "Build #${BUILD_ID}\nCommit ${env.COMMITHASH}", subject: "[Jenkins] Failed integration tests", to: COMMIT_AUTHOR_EMAIL
+              }
+              else {
+                  setBuildStatus("Integration tests passed", "SUCCESS", "cern/jenkins/integration", env.COMMITHASH)
+              }
+
+              junit "result_integration.xml"
+            },
+
+            unit: {
+              statusCodeUnit = sh returnStatus: true, script: '''
+                ./jenkins/projects/inspire-next/resources/unit_tests.sh
+                '''
+
+              if (statusCodeUnit != 0) {
+                currentBuild.result = 'FAILURE'
+                setBuildStatus("Unit tests failed", "FAILURE", "cern/jenkins/unit", env.COMMITHASH)
+                mail body: "Build #${BUILD_ID}\nCommit ${env.COMMITHASH}", subject: "[Jenkins] Failed unit tests", to: COMMIT_AUTHOR_EMAIL
+              }
+              else {
+                  setBuildStatus("Unit tests passed", "SUCCESS", "cern/jenkins/unit", env.COMMITHASH)
+              }
+
+              junit "result_unit.xml"
+            }
+          )
+
+          if (!statusCodeAcceptance && !statusCodeWorkflows && !statusCodeIntegration && !statusCodeUnit) {
+            currentBuild.result = 'SUCCESS'
+            mail body: "Build #${BUILD_ID}\nCommit ${env.COMMITHASH}", subject: "[Jenkins] Successful build", to: COMMIT_AUTHOR_EMAIL
           }
           else {
-              setBuildStatus("Tests passed", "SUCCESS", "cern/jenkins/acceptance", env.COMMITHASH)
+            currentBuild.result = 'FAILURE'
+            error "Tests failed"
           }
         }
-
-        junit "result.xml"
       }
     } finally {
       stage('Cleanup') {
