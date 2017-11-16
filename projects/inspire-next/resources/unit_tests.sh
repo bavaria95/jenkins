@@ -23,4 +23,7 @@ OUTPUT=$("${KUBECTL[@]}" logs "$PODNAME")
 echo $OUTPUT | grep -Po '(<\?xml.*</testsuite>)' > result_unit.xml
 # number of tests failues
 FAILURES=$(echo $OUTPUT | grep -Po '.*\K(?<=failures=")\d+(?=" )')
-exit $FAILURES
+# number of tests errors
+ERRORS=$(echo $OUTPUT | grep -Po '.*\K(?<=errors=")\d+(?=" )')
+TOTAL=$(($FAILURES+$ERRORS))
+exit $TOTAL
